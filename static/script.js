@@ -22,6 +22,12 @@ document.addEventListener('DOMContentLoaded', () => {
         'tree': 'Iris Dataset - A multi-class classification task identifying iris flower species based on sepal/petal dimensions.'
     };
 
+    const howItWorks = {
+        'linear': 'Calculates a weighted sum of the input features plus a bias term. It uses <strong>Gradient Descent</strong> to iteratively decrease the <strong>Mean Squared Error (MSE)</strong> by updating weights based on their gradients.',
+        'logistic': 'Passes a weighted sum of inputs through a <strong>Sigmoid function</strong> to output a probability (0-1). It uses Gradient Descent to minimize the <strong>Binary Cross-Entropy Loss</strong>, finding the best boundary between classes.',
+        'tree': 'Builds a tree by recursively partitioning data. At each step, it finds the feature and split point that maximizes information gain using <strong>Gini Impurity</strong>. It stops when reaching max depth or minimum samples.'
+    };
+
     // Tab Switching Logic
     tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -46,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Update description
             datasetDesc.textContent = descriptions[currentModel];
+            document.getElementById('howItWorksDesc').innerHTML = howItWorks[currentModel];
         });
     });
 
@@ -118,8 +125,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modelType === 'tree' || !lossHistory || lossHistory.length === 0) {
             // Decision trees don't use GD, so no loss curve
             emptyState.innerHTML = `
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-                <p>Tree constructed successfully! No gradient descent loss to track.</p>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.8; margin-bottom: 0.5rem;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                <div style="text-align: center; max-width: 80%;">
+                    <p style="margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 500;">Tree Constructed Successfully!</p>
+                    <span class="help-text" style="font-size: 0.85rem; color: var(--text-secondary);">Decision Trees learn by making direct mathematical splits in the dataset all at once. Unlike gradient descent, they do not incrementally update weights. Therefore, there is no continuous error curve to visualize.</span>
+                </div>
             `;
             emptyState.classList.remove('hidden');
             return;
@@ -162,6 +172,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
+                    title: {
+                        display: true,
+                        text: 'Learning Curve: How the model\'s error decreases over time.',
+                        color: 'rgba(230, 237, 243, 0.8)',
+                        font: { size: 14, weight: 'normal', family: 'Outfit' },
+                        padding: { top: 0, bottom: 20 }
+                    },
                     tooltip: {
                         mode: 'index',
                         intersect: false,
@@ -175,11 +192,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 scales: {
                     x: {
                         grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                        title: { display: true, text: 'Iteration' }
+                        title: { display: true, text: 'Iteration (Training Step)', color: '#8b949e', font: { size: 13 } }
                     },
                     y: {
                         grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                        title: { display: true, text: 'Loss' }
+                        title: { display: true, text: 'Loss (Amount of Error)', color: '#8b949e', font: { size: 13 } }
                     }
                 },
                 interaction: {
