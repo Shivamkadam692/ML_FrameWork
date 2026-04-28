@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ML Framework Playground</title>
-    <meta name="description" content="A modern, interactive playground for the Machine Learning Framework implemented from scratch.">
+    <title>ML Framework Workings</title>
+    <meta name="description"
+        content="A modern, interactive playground for the Machine Learning Framework implemented from scratch.">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,6 +16,7 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/static/style.css">
 </head>
+
 <body>
     <div class="background-gradients">
         <div class="blob blob-1"></div>
@@ -23,8 +26,8 @@
 
     <div class="app-container">
         <header class="app-header">
-            <h1>ML Framework <span class="highlight">Playground</span></h1>
-            <p>Train custom machine learning models implemented entirely from scratch in Python.</p>
+            <h1>ML Framework <span class="highlight">Workings</span></h1>
+            <p>Train custom machine learning model</p>
         </header>
 
         <main class="app-main">
@@ -55,21 +58,36 @@
                     </div>
                 </div>
 
-                <div class="hyperparameters">
-                    <h2>2. Configure Parameters</h2>
+                <div class="dataset-selector" style="margin-top: 1.5rem;">
+                    <h2>2. Select Dataset</h2>
+                    <p class="section-desc">Choose the data you want to use for training.</p>
+                    <div class="input-group">
+                        <select id="datasetSelect" class="form-select"
+                            style="width: 100%; padding: 0.8rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(22, 27, 34, 0.5); color: #e6edf3; font-family: 'Outfit', sans-serif; cursor: pointer;">
+                            <option value="housing">California Housing (Regression)</option>
+                            <option value="breast_cancer" disabled>Breast Cancer (Classification)</option>
+                            <option value="iris" disabled>Iris (Classification)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="hyperparameters" style="margin-top: 1.5rem;">
+                    <h2>3. Configure Parameters</h2>
                     <p class="section-desc">Adjust settings that control the learning process.</p>
-                    
+
                     <!-- Linear/Logistic specific -->
                     <div id="gd-params" class="param-group active">
                         <div class="input-group">
                             <label for="learningRate">Learning Rate</label>
                             <input type="number" id="learningRate" value="0.01" step="0.001" min="0.0001" max="1.0">
-                            <small class="help-text">Controls how much the model changes per step. Smaller = slower but stable learning.</small>
+                            <small class="help-text">Controls how much the model changes per step. Smaller = slower but
+                                stable learning.</small>
                         </div>
                         <div class="input-group">
                             <label for="iterations">Iterations</label>
                             <input type="number" id="iterations" value="1000" step="100" min="100" max="10000">
-                            <small class="help-text">Number of times the algorithm sees the entire training data.</small>
+                            <small class="help-text">Number of times the algorithm sees the entire training
+                                data.</small>
                         </div>
                     </div>
 
@@ -93,9 +111,11 @@
                         <span class="btn-text">Train Model</span>
                         <span class="loader hidden"></span>
                     </button>
-                    <p class="help-text" style="text-align: center; margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.85rem;">Click to start training and view the learning curve.</p>
+                    <p class="help-text"
+                        style="text-align: center; margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.85rem;">
+                        Click to start training and view the learning curve.</p>
                 </div>
-                
+
                 <div id="errorMsg" class="error-msg hidden"></div>
             </section>
 
@@ -104,31 +124,62 @@
                 <div class="results-header">
                     <div>
                         <h2>Training Results</h2>
-                        <p class="section-desc" style="margin-bottom: 0;">Visualizes how the model improves as it learns.</p>
+                        <p class="section-desc" style="margin-bottom: 0;">Visualizes model learning and performance.</p>
                     </div>
                     <div id="metricBadge" class="metric-badge hidden"></div>
                 </div>
-                
-                <div class="chart-container">
+
+                <div class="view-toggle" style="margin-bottom: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <button id="viewLossBtn" class="tab-btn active"
+                        style="padding: 0.5rem 1rem; font-size: 0.9rem; flex: 1; min-width: 120px;">Learning
+                        Curve</button>
+                    <button id="viewPerfBtn" class="tab-btn"
+                        style="padding: 0.5rem 1rem; font-size: 0.9rem; flex: 1; min-width: 120px;">Predictions</button>
+                    <button id="viewBackendBtn" class="tab-btn"
+                        style="padding: 0.5rem 1rem; font-size: 0.9rem; flex: 1; min-width: 120px;">Backend
+                        Insights</button>
+                </div>
+
+                <div class="chart-container" style="position: relative;">
                     <canvas id="lossChart"></canvas>
+                    <canvas id="perfChart" style="display: none;"></canvas>
+                    <canvas id="backendChart" style="display: none;"></canvas>
+                    <div id="confusionMatrixContainer"
+                        style="display: none; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+                    </div>
                     <div id="emptyState" class="empty-state">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="3" y1="9" x2="21" y2="9"></line>
+                            <line x1="9" y1="21" x2="9" y2="9"></line>
+                        </svg>
                         <div style="text-align: center; max-width: 80%;">
-                            <p style="margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 500;">Train a model to see the Learning Curve</p>
-                            <span class="help-text" style="font-size: 0.85rem;">A Learning Curve shows how the model's error (Loss) decreases over time (Iterations) as it learns from the data.</span>
+                            <p style="margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 500;">Train a
+                                model to see the Learning Curve</p>
+                            <span class="help-text" style="font-size: 0.85rem;">A Learning Curve shows how the model's
+                                error (Loss) decreases over time (Iterations) as it learns from the data.</span>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="dataset-info">
                     <h3>Dataset Details</h3>
-                    <p class="help-text" style="color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 0.85rem;">This is the data the model uses to learn patterns.</p>
-                    <p id="datasetDesc">California Housing Dataset - A regression task predicting median house values.</p>
+                    <p class="help-text"
+                        style="color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 0.85rem;">This is the
+                        data the model uses to learn patterns.</p>
+                    <p id="datasetDesc">California Housing Dataset - A regression task predicting median house values.
+                    </p>
                 </div>
 
-                <div class="how-it-works-info" style="margin-top: 1.5rem; padding: 1rem; background: rgba(0, 0, 0, 0.2); border-radius: 8px; border-left: 3px solid var(--gradient-1);">
-                    <h3 style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.3rem;">Under the Hood (How it Works)</h3>
-                    <p id="howItWorksDesc" style="font-size: 0.95rem; line-height: 1.4;">Calculates a weighted sum of the input features plus a bias term. It uses <strong>Gradient Descent</strong> to iteratively decrease the <strong>Mean Squared Error (MSE)</strong> by updating weights based on their gradients.</p>
+                <div class="how-it-works-info"
+                    style="margin-top: 1.5rem; padding: 1rem; background: rgba(0, 0, 0, 0.2); border-radius: 8px; border-left: 3px solid var(--gradient-1);">
+                    <h3 style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.3rem;">Under the Hood
+                        (How it Works)</h3>
+                    <p id="howItWorksDesc" style="font-size: 0.95rem; line-height: 1.4;">Calculates a weighted sum of
+                        the input features plus a bias term. It uses <strong>Gradient Descent</strong> to iteratively
+                        decrease the <strong>Mean Squared Error (MSE)</strong> by updating weights based on their
+                        gradients.</p>
                 </div>
             </section>
         </main>
@@ -136,4 +187,5 @@
 
     <script src="/static/script.js"></script>
 </body>
+
 </html>

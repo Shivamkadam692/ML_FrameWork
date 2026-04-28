@@ -7,6 +7,8 @@ from models.logistic_regression import LogisticRegression
 from models.decision_tree import DecisionTree
 from metrics.mean_squared_error import mean_squared_error
 from metrics.accuracy import accuracy_score
+from metrics.confusion_matrix import confusion_matrix
+import numpy as np
 import traceback
 
 app = Flask(__name__)
@@ -21,10 +23,15 @@ def train_linear():
         data = request.json
         lr = float(data.get('learningRate', 0.01))
         iterations = int(data.get('iterations', 1000))
+        dataset_name = data.get('dataset', 'housing')
         
-        # Load and sample dataset
-        X, y = load_housing_dataset()
-        X, y = X[:1000], y[:1000] # Subsample for speed
+        if dataset_name == 'housing':
+            X, y, feature_names = load_housing_dataset()
+        else:
+            return jsonify({'success': False, 'error': 'Please select a Regression dataset for Linear Regression.'})
+
+        # Subsample for speed
+        X, y = X[:1000], y[:1000] 
         
         X_train, X_test, y_train, y_test = train_test_split_custom(X, y, test_size=0.2, random_state=42)
         
@@ -44,7 +51,11 @@ def train_linear():
         return jsonify({
             'success': True,
             'metric': f"Test MSE: {mse:.4f}",
-            'loss_history': loss_history
+            'loss_history': loss_history,
+            'y_test': y_test[:100].tolist(),
+            'predictions': predictions[:100].tolist(),
+            'weights': np.abs(model.weights).tolist(),
+            'feature_names': list(feature_names) if feature_names is not None else []
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e), 'trace': traceback.format_exc()})
@@ -55,8 +66,13 @@ def train_logistic():
         data = request.json
         lr = float(data.get('learningRate', 0.05))
         iterations = int(data.get('iterations', 1000))
+        dataset_name = data.get('dataset', 'breast_cancer')
         
-        X, y = load_breast_cancer_dataset()
+        if dataset_name == 'breast_cancer':
+            X, y, feature_names = load_breast_cancer_dataset()
+        else:
+            return jsonify({'success': False, 'error': 'Logistic Regression currently only supports binary classification (Breast Cancer Dataset).'})
+
         X_train, X_test, y_train, y_test = train_test_split_custom(X, y, test_size=0.2, random_state=42)
         
         scaler = StandardScaler()
@@ -69,12 +85,19 @@ def train_logistic():
         predictions = model.predict(X_test)
         acc = accuracy_score(y_test, predictions)
         
+        cm, classes = confusion_matrix(y_test, predictions)
         loss_history = getattr(model, 'loss_history', [])
         
         return jsonify({
             'success': True,
             'metric': f"Test Accuracy: {acc * 100:.2f}%",
-            'loss_history': loss_history
+            'loss_history': loss_history,
+            'y_test': y_test[:100].tolist(),
+            'predictions': predictions[:100].tolist(),
+            'weights': np.abs(model.weights).tolist(),
+            'feature_names': list(feature_names) if feature_names is not None else [],
+            'confusion_matrix': cm.tolist(),
+            'classes': classes.tolist()
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e), 'trace': traceback.format_exc()})
@@ -85,8 +108,15 @@ def train_tree():
         data = request.json
         max_depth = int(data.get('maxDepth', 5))
         min_samples = int(data.get('minSamples', 2))
+        dataset_name = data.get('dataset', 'iris')
         
-        X, y = load_iris_dataset()
+        if dataset_name == 'iris':
+            X, y, feature_names = load_iris_dataset()
+        elif dataset_name == 'breast_cancer':
+            X, y, feature_names = load_breast_cancer_dataset()
+        else:
+            return jsonify({'success': False, 'error': 'Please select a Classification dataset for Decision Tree.'})
+
         X_train, X_test, y_train, y_test = train_test_split_custom(X, y, test_size=0.2, random_state=42)
         
         model = DecisionTree(max_depth=max_depth, min_samples_split=min_samples)
@@ -95,10 +125,16 @@ def train_tree():
         predictions = model.predict(X_test)
         acc = accuracy_score(y_test, predictions)
         
+        cm, classes = confusion_matrix(y_test, predictions)
+
         return jsonify({
             'success': True,
             'metric': f"Test Accuracy: {acc * 100:.2f}%",
-            'loss_history': [] # Tree doesn't use gradient descent
+            'loss_history': [], # Tree doesn't use gradient descent
+            'y_test': y_test[:100].tolist(),
+            'predictions': predictions[:100].tolist(),
+            'confusion_matrix': cm.tolist(),
+            'classes': classes.tolist()
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e), 'trace': traceback.format_exc()})
