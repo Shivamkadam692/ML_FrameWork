@@ -100,6 +100,22 @@ class DecisionTree(BaseModel):
         value = counter.most_common(1)[0][0]
         return value
         
+    def feature_importances(self, n_features):
+        """Compute feature importance based on how often each feature is used for splitting."""
+        importances = np.zeros(n_features)
+        self._compute_importance(self.root, importances)
+        total = np.sum(importances)
+        if total > 0:
+            importances = importances / total
+        return importances
+
+    def _compute_importance(self, node, importances):
+        if node is None or node.is_leaf_node():
+            return
+        importances[node.feature] += 1
+        self._compute_importance(node.left, importances)
+        self._compute_importance(node.right, importances)
+
     def predict(self, X):
         X = np.asarray(X)
         return np.array([self._traverse_tree(x, self.root) for x in X])

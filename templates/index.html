@@ -130,23 +130,25 @@
                 </div>
 
                 <div class="view-toggle" style="margin-bottom: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                    <button id="viewLossBtn" class="tab-btn active"
-                        style="padding: 0.5rem 1rem; font-size: 0.9rem; flex: 1; min-width: 120px;">Learning
+                    <button id="viewLossBtn" class="view-tab-btn active"
+                        style="padding: 0.5rem 1rem; font-size: 0.9rem; flex: 1; min-width: 100px;">Learning
                         Curve</button>
-                    <button id="viewPerfBtn" class="tab-btn"
-                        style="padding: 0.5rem 1rem; font-size: 0.9rem; flex: 1; min-width: 120px;">Predictions</button>
-                    <button id="viewBackendBtn" class="tab-btn"
-                        style="padding: 0.5rem 1rem; font-size: 0.9rem; flex: 1; min-width: 120px;">Backend
-                        Insights</button>
+                    <button id="viewPerfBtn" class="view-tab-btn"
+                        style="padding: 0.5rem 1rem; font-size: 0.9rem; flex: 1; min-width: 100px;">Predictions</button>
+                    <button id="viewDiagBtn" class="view-tab-btn"
+                        style="padding: 0.5rem 1rem; font-size: 0.9rem; flex: 1; min-width: 100px;">Model Diagnostics</button>
                 </div>
 
                 <div class="chart-container" style="position: relative;">
                     <canvas id="lossChart"></canvas>
                     <canvas id="perfChart" style="display: none;"></canvas>
-                    <canvas id="backendChart" style="display: none;"></canvas>
-                    <div id="confusionMatrixContainer"
-                        style="display: none; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+                    <!-- Model Diagnostics sub-views -->
+                    <div id="diagnosticsContainer" style="display: none; width: 100%; height: 100%; flex-direction: column; gap: 1rem; overflow-y: auto;">
+                        <canvas id="featureImportanceChart"></canvas>
+                        <canvas id="residualsChart" style="display: none;"></canvas>
+                        <div id="confusionMatrixContainer"></div>
                     </div>
+
                     <div id="emptyState" class="empty-state">
                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -160,6 +162,26 @@
                             <span class="help-text" style="font-size: 0.85rem;">A Learning Curve shows how the model's
                                 error (Loss) decreases over time (Iterations) as it learns from the data.</span>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Metrics Summary Cards -->
+                <div id="metricsCards" class="metrics-cards hidden">
+                    <div class="metric-card" id="metricCard1">
+                        <span class="metric-card-label" id="metricLabel1">—</span>
+                        <span class="metric-card-value" id="metricValue1">—</span>
+                    </div>
+                    <div class="metric-card" id="metricCard2">
+                        <span class="metric-card-label" id="metricLabel2">—</span>
+                        <span class="metric-card-value" id="metricValue2">—</span>
+                    </div>
+                    <div class="metric-card" id="metricCard3">
+                        <span class="metric-card-label" id="metricLabel3">—</span>
+                        <span class="metric-card-value" id="metricValue3">—</span>
+                    </div>
+                    <div class="metric-card" id="metricCard4">
+                        <span class="metric-card-label" id="metricLabel4">—</span>
+                        <span class="metric-card-value" id="metricValue4">—</span>
                     </div>
                 </div>
 

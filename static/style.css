@@ -11,6 +11,9 @@
     --gradient-1: #8a2be2;
     --gradient-2: #4169e1;
     --gradient-3: #00ced1;
+    --amber: #f0b429;
+    --teal: #2dd4bf;
+    --pink: #ec4899;
 }
 
 * {
@@ -213,6 +216,30 @@ h2 {
     font-weight: bold;
 }
 
+/* View Toggle Tabs (separate from model selector tabs) */
+.view-tab-btn {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
+    transition: all 0.25s ease;
+}
+
+.view-tab-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-1px);
+}
+
+.view-tab-btn.active {
+    background: linear-gradient(135deg, rgba(88, 166, 255, 0.2), rgba(138, 43, 226, 0.15));
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    box-shadow: 0 0 12px rgba(88, 166, 255, 0.15);
+}
+
 /* Forms */
 .param-group {
     display: none;
@@ -353,7 +380,7 @@ h2 {
     border-radius: 8px;
     border: 1px dashed var(--panel-border);
     position: relative;
-    min-height: 300px;
+    min-height: 350px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -376,6 +403,79 @@ canvas {
 
 .empty-state svg {
     opacity: 0.5;
+}
+
+/* Metrics Summary Cards */
+.metrics-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    animation: fadeIn 0.5s ease;
+}
+
+@media (max-width: 900px) {
+    .metrics-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.metric-card {
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 0.8rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent-primary), var(--gradient-3));
+    opacity: 0.6;
+}
+
+.metric-card:hover {
+    border-color: rgba(88, 166, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.metric-card:nth-child(1)::before { background: linear-gradient(90deg, #58a6ff, #4169e1); }
+.metric-card:nth-child(2)::before { background: linear-gradient(90deg, #3fb950, #2dd4bf); }
+.metric-card:nth-child(3)::before { background: linear-gradient(90deg, #f0b429, #ec4899); }
+.metric-card:nth-child(4)::before { background: linear-gradient(90deg, #8a2be2, #00ced1); }
+
+.metric-card-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+.metric-card-value {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+@keyframes countUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.metric-card-value.animate {
+    animation: countUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .dataset-info {
@@ -404,4 +504,21 @@ canvas {
     border-radius: 8px;
     font-size: 0.9rem;
     animation: fadeIn 0.3s ease;
+}
+
+/* Model Diagnostics Layout */
+#diagnosticsContainer {
+    padding: 0.5rem;
+}
+
+#diagnosticsContainer canvas {
+    min-height: 220px;
+    max-height: 300px;
+}
+
+#confusionMatrixContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
 }

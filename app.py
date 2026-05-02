@@ -8,6 +8,10 @@ from models.decision_tree import DecisionTree
 from metrics.mean_squared_error import mean_squared_error
 from metrics.accuracy import accuracy_score
 from metrics.confusion_matrix import confusion_matrix
+from metrics.r2_score import r2_score
+from metrics.precision import precision_score
+from metrics.recall import recall_score
+from metrics.f1_score import f1_score
 import numpy as np
 import traceback
 
@@ -44,9 +48,13 @@ def train_linear():
         
         predictions = model.predict(X_test)
         mse = mean_squared_error(y_test, predictions)
+        r2 = r2_score(y_test, predictions)
         
         # Extract loss history safely
         loss_history = getattr(model, 'loss_history', [])
+        
+        # Compute residuals for diagnostics
+        residuals = (y_test - predictions).tolist()
         
         return jsonify({
             'success': True,
@@ -55,7 +63,13 @@ def train_linear():
             'y_test': y_test[:100].tolist(),
             'predictions': predictions[:100].tolist(),
             'weights': np.abs(model.weights).tolist(),
-            'feature_names': list(feature_names) if feature_names is not None else []
+            'feature_names': list(feature_names) if feature_names is not None else [],
+            'residuals': residuals[:100],
+            'r2_score': round(float(r2), 4),
+            'mse': round(float(mse), 4),
+            'train_samples': int(X_train.shape[0]),
+            'test_samples': int(X_test.shape[0]),
+            'n_features': int(X_train.shape[1])
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e), 'trace': traceback.format_exc()})
@@ -83,7 +97,11 @@ def train_logistic():
         model.fit(X_train, y_train)
         
         predictions = model.predict(X_test)
+        probabilities = model.predict_proba(X_test)
         acc = accuracy_score(y_test, predictions)
+        prec = precision_score(y_test, predictions)
+        rec = recall_score(y_test, predictions)
+        f1 = f1_score(y_test, predictions)
         
         cm, classes = confusion_matrix(y_test, predictions)
         loss_history = getattr(model, 'loss_history', [])
@@ -94,10 +112,18 @@ def train_logistic():
             'loss_history': loss_history,
             'y_test': y_test[:100].tolist(),
             'predictions': predictions[:100].tolist(),
+            'probabilities': probabilities[:100].tolist(),
             'weights': np.abs(model.weights).tolist(),
             'feature_names': list(feature_names) if feature_names is not None else [],
             'confusion_matrix': cm.tolist(),
-            'classes': classes.tolist()
+            'classes': classes.tolist(),
+            'accuracy': round(float(acc), 4),
+            'precision': round(float(prec), 4),
+            'recall': round(float(rec), 4),
+            'f1_score': round(float(f1), 4),
+            'train_samples': int(X_train.shape[0]),
+            'test_samples': int(X_test.shape[0]),
+            'n_features': int(X_train.shape[1])
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e), 'trace': traceback.format_exc()})
@@ -126,15 +152,53 @@ def train_tree():
         acc = accuracy_score(y_test, predictions)
         
         cm, classes = confusion_matrix(y_test, predictions)
+        
+        # Feature importance from tree structure
+        n_features = X_train.shape[1]
+        importances = model.feature_importances(n_features)
+        
+        # Compute per-class metrics (using macro-average for multiclass)
+        # For binary, use standard; for multiclass, compute macro average
+        unique_classes = np.unique(y_test)
+        if len(unique_classes) == 2:
+            prec = precision_score(y_test, predictions)
+            rec = recall_score(y_test, predictions)
+            f1 = f1_score(y_test, predictions)
+        else:
+            # Macro-average for multiclass
+            prec_sum, rec_sum, f1_sum = 0, 0, 0
+            for cls in unique_classes:
+                y_bin_true = (y_test == cls).astype(int)
+                y_bin_pred = (predictions == cls).astype(int)
+                p = precision_score(y_bin_true, y_bin_pred)
+                r = recall_score(y_bin_true, y_bin_pred)
+                f = f1_score(y_bin_true, y_bin_pred)
+                prec_sum += p
+                rec_sum += r
+                f1_sum += f
+            n_cls = len(unique_classes)
+            prec = prec_sum / n_cls
+            rec = rec_sum / n_cls
+            f1 = f1_sum / n_cls
 
         return jsonify({
             'success': True,
             'metric': f"Test Accuracy: {acc * 100:.2f}%",
-            'loss_history': [], # Tree doesn't use gradient descent
+            'loss_history': [],  # Tree doesn't use gradient descent
             'y_test': y_test[:100].tolist(),
             'predictions': predictions[:100].tolist(),
             'confusion_matrix': cm.tolist(),
-            'classes': classes.tolist()
+            'classes': classes.tolist(),
+            'weights': importances.tolist(),
+            'feature_names': list(feature_names) if feature_names is not None else [],
+            'accuracy': round(float(acc), 4),
+            'precision': round(float(prec), 4),
+            'recall': round(float(rec), 4),
+            'f1_score': round(float(f1), 4),
+            'max_depth_used': max_depth,
+            'train_samples': int(X_train.shape[0]),
+            'test_samples': int(X_test.shape[0]),
+            'n_features': int(X_train.shape[1])
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e), 'trace': traceback.format_exc()})
